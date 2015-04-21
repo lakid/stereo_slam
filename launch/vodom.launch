@@ -1,0 +1,43 @@
+<launch>
+
+	<!-- <arg name="bagfile" default=" Your bagfile here "/> -->
+
+	<!-- Setup the camera -->
+	<arg name="camera" default="/multisense"/>
+	<arg name="sim_time" default="false"/>
+	<param if="$(arg sim_time)" name="/use_sim_time" value="True"/>
+	<param unless="$(arg sim_time)" name="/use_sim_time" value="false"/>	
+	<arg name="use_fovis" default="False"/>
+
+
+	<!-- Run the stereo image proc -->
+<!-- 	<group ns="$(arg camera)">
+		<node pkg="stereo_image_proc" type="stereo_image_proc" name="stereo_image_proc" output="screen"/>
+	</group> -->
+
+	<!-- Run the visual odometry: You can choose between viso2 and fovis -->
+
+	<arg if="$(arg use_fovis)" name="vodom_topic" value="/fovis/odometry" />
+	<arg unless="$(arg use_fovis)" name="vodom_topic" value="/stereo_odometer/odometry" />
+
+ 	<node unless="$(arg use_fovis)" pkg="viso2_ros" type="stereo_odometer" name="stereo_odometer" output="screen">
+		<remap from="stereo" to="$(arg camera)"/>
+		<remap from="image" to="image_rect"/>
+		<!-- <remap from="camera_info" to="camera_info"/> -->
+		<param name="base_link_frame_id" value="base_link"/>
+		<param name="odom_frame_id" value="/vodom"/>
+		<param name="publish_tf" value="True"/>
+	</node>
+
+	<node if="$(arg use_fovis)" pkg="fovis_ros" type="fovis_stereo_odometer" name="fovis"  output="screen">
+		<remap from="stereo" to="$(arg camera)"/>
+		<remap from="image" to="image_rect"/>
+		<param name="base_link_frame_id" value="$(arg camera)/head"/>
+
+		<param name="odom_frame_id" value="/vodom"/>
+
+	</node>
+
+
+
+</launch>
