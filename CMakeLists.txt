@@ -92,4 +92,33 @@ add_executable(inserter
 target_link_libraries(inserter
 						${eigen_LIBRARIES}
 						${MYSQL_LIBRARIES}
-						${catkin_LIBRARIES})
+						${catkin_LIBRARIES}
+
+
+)
+
+#############
+## Install ##
+#############
+
+# all install targets should use catkin DESTINATION variables
+# See http://ros.org/doc/api/catkin/html/adv_user_guide/variables.html
+
+## Mark executable scripts (Python etc.) for installation
+## in contrast to setup.py, you can choose the destination
+
+## Mark executables and/or libraries for installation
+ install(TARGETS localization offline_reconstruction inserter
+   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+ )
+ 
+install(DIRECTORY launch
+DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
+)
+
+
+
+
+

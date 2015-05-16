@@ -6,50 +6,54 @@
 	<arg name="camera" default="/multisense"/>
 	<arg name="sim_time" default="false"/>
 	<param if="$(arg sim_time)" name="/use_sim_time" value="True"/>
-	<param unless="$(arg sim_time)" name="/use_sim_time" value="false"/>	
+	<param unless="$(arg sim_time)" name="/use_sim_time" value="false"/>
 	<arg name="use_fovis" default="False"/>
-
-
-	<!-- Run the stereo image proc -->
-<!-- 	<group ns="$(arg camera)">
-		<node pkg="stereo_image_proc" type="stereo_image_proc" name="stereo_image_proc" output="screen"/>
-	</group> -->
 
 	<!-- Run the visual odometry: You can choose between viso2 and fovis -->
 
 	<arg if="$(arg use_fovis)" name="vodom_topic" value="/fovis/odometry" />
 	<arg unless="$(arg use_fovis)" name="vodom_topic" value="/stereo_odometer/odometry" />
 
- 	<node unless="$(arg use_fovis)" pkg="viso2_ros" type="stereo_odometer" name="stereo_odometer" output="screen">
+	<node unless="$(arg use_fovis)" pkg="viso2_ros" type="stereo_odometer" name="stereo_odometer" output="screen">
 		<remap from="stereo" to="$(arg camera)"/>
 		<remap from="image" to="image_rect"/>
+		<remap from="$(arg camera)/left/camera_info" to="$(arg camera)/left/image_rect/camera_info"/>
+		<remap from="$(arg camera)/right/camera_info" to="$(arg camera)/right/image_rect/camera_info"/>
+
 		<!-- <remap from="camera_info" to="camera_info"/> -->
 		<param name="base_link_frame_id" value="base_link"/>
-
+		<param name="image_transport" value="raw"/>
 	</node>
 
 	<node if="$(arg use_fovis)" pkg="fovis_ros" type="fovis_stereo_odometer" name="fovis"  output="screen">
 		<remap from="stereo" to="$(arg camera)"/>
 		<remap from="image" to="image_rect"/>
-		<param name="base_link_frame_id" value="$(arg camera)/head"/>
+		<param name="base_link_frame_id" value="multisense_root"/>
+		<remap from="$(arg camera)/left/camera_info" to="$(arg camera)/left/image_rect/camera_info"/>
+		<remap from="$(arg camera)/right/camera_info" to="$(arg camera)/right/image_rect/camera_info"/>
+
+		<param name="image_transport" value="raw"/>
 	</node>
 
 	<!-- Stereo SLAM -->
 	<node pkg="stereo_slam" type="localization" name="slam" output="screen">
 
 		<!-- Working directory -->
-		<param name="work_dir" value="/home/gbrix/rosbag/stereo_slam" />
+		<param name="work_dir" value="/tmp" />
 
 		<!-- Topic parameters -->
 		<param name="odom_topic" value="$(arg vodom_topic)"/>
 		<param name="left_topic" value="$(arg camera)/left/image_rect"/>
 		<param name="right_topic" value="$(arg camera)/right/image_rect"/>
-		<param name="left_info_topic" value="$(arg camera)/left/camera_info"/>
-		<param name="right_info_topic" value="$(arg camera)/right/camera_info"/>
+		<param name="left_info_topic" value="$(arg camera)/left/image_rect/camera_info"/>
+		<param name="right_info_topic" value="$(arg camera)/right/image_rect/camera_info"/>
 		<param name="image_transport" value="raw"/>
+		<param name="cloud_topic" value="$(arg camera)/image_points2_color"/>
+	        <param name="save_clouds" value="false"/>
+
 
 		<param name="pose_frame_id" value="base_link"/>
-		<param name="pose_child_frame_id" value="map_stereo"/>
+		<param name="pose_child_frame_id" value="odom"/>
 
 		<!-- Min displacement between graph vertices (in meters) -->
 		<param name="min_displacement" value="0.25"/>
@@ -76,7 +80,7 @@
 		<param name="min_inliers" value="15" />
 
 		<!-- Set to 0 for LinearSlam Solver with gauss-newton. Set to 1 for LinearSlam Solver with Levenberg -->
-		<param name="g2o_algorithm" value="0" />
+		<param name="g2o_algorithm" value="1" />
 
 		<!-- Maximum number of iteration for the g2o algorithm -->
 		<param name="g2o_opt_max_iter" value="10" />
@@ -89,7 +93,7 @@
 		<param name="graph_topic" value="slam/graph"/>
 		<param name="cloud_topic" value="$(arg camera)/scaled/points2"/>
 
-		<rosparam file="$(find stereo_slam)/etc/reconstruction.yaml" /> 
+		<rosparam file="$(find stereo_slam)/etc/reconstruction.yaml" />
 
 	</node> -->
 
